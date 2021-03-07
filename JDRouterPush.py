@@ -234,8 +234,8 @@ def resolveDeviceName(DEVICENAME):
 # 推送通知
 def sendNotification(SERVERPUSHKEY,text,desp):
     # server推送
-    # server_push_url = "https://sctapi.ftqq.com/" + SERVERPUSHKEY + ".send"
-    server_push_url = "https://sc.ftqq.com/" + SERVERPUSHKEY + ".send"
+    server_push_url = "https://sctapi.ftqq.com/" + SERVERPUSHKEY + ".send"
+    # server_push_url = "https://sc.ftqq.com/" + SERVERPUSHKEY + ".send"
     str = SERVERPUSHKEY[0:3]
     if "SCT" == str:
         server_push_url = "https://sctapi.ftqq.com/" + SERVERPUSHKEY + ".send"
