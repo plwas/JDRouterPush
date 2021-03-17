@@ -2,12 +2,14 @@ import datetime
 import requests
 import os
 
+# region 全局参数
+
 # API
 jd_base_url = "https://router-app-api.jdcloud.com/v1/regions/cn-north-1/"
 # RequestHeader
 headers = {
-        "x-app-id": "996",
-        "Content-Type": "application/json"
+    "x-app-id": "996",
+    "Content-Type": "application/json"
 }
 # Store query results
 final_result = {}
@@ -16,7 +18,7 @@ device_name = {}
 # 记录数
 records_num = 7
 # 当前版本
-version = "20210304"
+version = "20210314"
 
 # 环境变量
 WSKEY = os.environ.get("WSKEY", "")  # 京东云无线宝中获取
@@ -45,6 +47,7 @@ def todayPointIncome():
     final_result["today_total_point"] = str(today_total_point)
     return today_total_point
 
+
 # 获取今日总积分
 def pinTotalAvailPoint():
     total_avail_point = 0
@@ -58,20 +61,22 @@ def pinTotalAvailPoint():
     final_result["total_avail_point"] = str(total_avail_point)
     return total_avail_point
 
+
 # 查找mac位置
 def findALocation(mac):
     point_infos = final_result["pointInfos"]
     alocation = -1
-    for index,point_info in enumerate(point_infos):
+    for index, point_info in enumerate(point_infos):
         if mac == point_info["mac"]:
             alocation = index
             break
     return alocation
 
+
 # 路由账户信息
 def routerAccountInfo(mac):
     params = {
-        "mac" : mac,
+        "mac": mac,
     }
     res = requests.get(jd_base_url + "routerAccountInfo", params=params, headers=headers)
     if res.status_code == 200:
@@ -84,7 +89,8 @@ def routerAccountInfo(mac):
         recentExpireAmount = accountInfo["recentExpireAmount"]
         recentExpireTime = accountInfo["recentExpireTime"]
         recentExpireTime_str = datetime.datetime.fromtimestamp(recentExpireTime / 1000).strftime("%Y-%m-%d %H:%M:%S")
-        account_info = {"amount":str(amount),"bindAccount":str(bindAccount),"recentExpireAmount":str(recentExpireAmount),"recentExpireTime":recentExpireTime_str}
+        account_info = {"amount": str(amount), "bindAccount": str(bindAccount),
+                        "recentExpireAmount": str(recentExpireAmount), "recentExpireTime": recentExpireTime_str}
         index = findALocation(mac)
         if index != -1:
             point_info = final_result["pointInfos"][index]
@@ -93,6 +99,7 @@ def routerAccountInfo(mac):
             print("Find mac failure!")
     else:
         print("Request routerAccountInfo failed!")
+
 
 # 路由活动信息
 def routerActivityInfo(mac):
@@ -103,16 +110,17 @@ def routerActivityInfo(mac):
     if res.status_code == 200:
         res_json = res.json()
         result = res_json["result"]
-        #finishActivity = result["finishActivity"]
+        # finishActivity = result["finishActivity"]
         totalIncomeValue = result["routerUnderwayResult"]["totalIncomeValue"]
         satisfiedTimes = result["routerUnderwayResult"]["satisfiedTimes"]
-        activity_info = {"mac":mac,"totalIncomeValue":totalIncomeValue,"satisfiedTimes":satisfiedTimes}
+        activity_info = {"mac": mac, "totalIncomeValue": totalIncomeValue, "satisfiedTimes": satisfiedTimes}
         index = findALocation(mac)
         if index != -1:
             point_info = final_result["pointInfos"][index]
             point_info.update(activity_info)
     else:
         print("Request routerActivityInfo failed!")
+
 
 # 收益信息
 def todayPointDetail():
@@ -142,6 +150,7 @@ def todayPointDetail():
     else:
         print("Request todayPointDetail failed!")
 
+
 # 点操作记录显示
 def pointOperateRecordsShow(mac):
     params = {
@@ -161,7 +170,7 @@ def pointOperateRecordsShow(mac):
             pointAmount = pointRecord["pointAmount"]
             createTime = pointRecord["createTime"]
             createTime_str = datetime.datetime.fromtimestamp(createTime / 1000).strftime("%Y-%m-%d")
-            point_record = {"recordType":recordType,"pointAmount":pointAmount,"createTime":createTime_str}
+            point_record = {"recordType": recordType, "pointAmount": pointAmount, "createTime": createTime_str}
             point_records.append(point_record)
         index = findALocation(mac)
         if index != -1:
@@ -169,6 +178,7 @@ def pointOperateRecordsShow(mac):
             point_info.update({"pointRecords": point_records})
     else:
         print("Request pointOperateRecordsShow failed!")
+
 
 # 解析设备名称
 def resolveDeviceName(DEVICENAME):
@@ -180,6 +190,7 @@ def resolveDeviceName(DEVICENAME):
             mac = devicename.split(":")[0]
             name = devicename.split(":")[1]
             device_name.update({mac: name})
+
 
 # 检测更新
 def checkForUpdates():
@@ -203,10 +214,10 @@ def checkForUpdates():
 # region 通知结果
 
 # 结果显示
-def resultDisplay(SERVERPUSHKEY):
+def resultDisplay():
     today_date = final_result["today_date"]
     today_total_point = final_result["today_total_point"]
-    title = today_date + "到账积分:" +  today_total_point
+    title = today_date + "到账积分:" + today_total_point
     todayDate = final_result["todayDate"]
     total_avail_point = final_result["total_avail_point"]
     totalRecord = final_result["totalRecord"]
@@ -235,12 +246,13 @@ def resultDisplay(SERVERPUSHKEY):
         if pointInfo.get("satisfiedTimes"):
             satisfiedTimes = pointInfo["satisfiedTimes"]
         pointRecords = pointInfo["pointRecords"]
-        point_infos = point_infos+ "\n" + "* " + device_name.get(str(mac[-6:]),"京东云无线宝_" + str(mac[-3:])) + "==>" \
+        point_infos = point_infos + "\n" + "* " + device_name.get(str(mac[-6:]), "京东云无线宝_" + str(mac[-3:])) + "==>" \
                       + "\n   · 今日积分：" + str(todayPointIncome) \
                       + "\n   · 可用积分：" + str(amount) \
                       + "\n   · 总收益积分：" + str(allPointIncome)
         if satisfiedTimes != "":
-            point_infos = point_infos + "\n   · 累计在线：" + str(satisfiedTimes)  + "天"
+            point_infos = point_infos + "\n   · 累计在线：" + \
+                          str(satisfiedTimes) + "天"
         point_infos = point_infos + "\n   · 最近到期积分：" + str(recentExpireAmount) \
                       + "\n   · 最近到期时间：" + recentExpireTime \
                       + "\n   · 最近" + str(records_num) + "条记录："
@@ -253,7 +265,8 @@ def resultDisplay(SERVERPUSHKEY):
                 recordType_str = "积分支出："
             pointAmount = pointRecord["pointAmount"]
             createTime = pointRecord["createTime"]
-            point_infos = point_infos + "\n          " + createTime + "   " + recordType_str + str(pointAmount)
+            point_infos = point_infos + "\n        " + \
+                          createTime + "  " + recordType_str + str(pointAmount)
     notifyContentJson = {"content": content, "date": todayDate, "total_today": today_total_point,
                          "avail_today": total_avail_point, "account": bindAccount, "devicesCount": totalRecord,
                          "detail": point_infos}
@@ -294,12 +307,12 @@ def resultDisplay(SERVERPUSHKEY):
 绑定账户:{account}
 设备总数:{devicesCount}
 **设备信息如下:**
-
 {detail}""".format(**notifyContentJson)
     print("标题->", title)
     print("内容->\n", normalContent)
     telegram_bot(title, normalContent)
     bark(title, normalContent)
+
 
 # Server酱推送
 def server_push(text, desp):
@@ -316,6 +329,52 @@ def server_push(text, desp):
         print("Server酱推送成功!")
     else:
         print("Server酱推送失败!")
+
+
+# tg推送
+def telegram_bot(title, content):
+    print("\n")
+    if not TG_BOT_TOKEN or not TG_USER_ID:
+        # print("Telegram推送的TG_BOT_TOKEN或者TG_USER_ID未设置!!\n取消推送")
+        return
+    print("Telegram 推送开始")
+    send_data = {"chat_id": TG_USER_ID, "text": title +
+                                                '\n\n' + content, "disable_web_page_preview": "true"}
+    response = requests.post(
+        url='https://api.telegram.org/bot%s/sendMessage' % (TG_BOT_TOKEN), data=send_data)
+    print(response.text)
+
+
+# Bark推送
+def bark(title, content):
+    print("\n")
+    if not BARK:
+        # print("bark服务的bark_token未设置!!\n取消推送")
+        return
+    print("bark服务启动")
+    response = requests.get(
+        f"""https://api.day.app/{BARK}/{title}/{content}""")
+    print(response.text)
+
+# pushplus推送
+def push_plus(title, content):
+    if not PUSHPLUS:
+        # print("pushplus推送的PUSHPLUS未设置!!\n取消推送")
+        return
+    push_plus_url = "http://www.pushplus.plus/send"
+    params = {
+        "token": PUSHPLUS,
+        "title": title,
+        "content": content,
+        "template": "markdown"
+    }
+    res = requests.post(url=push_plus_url, params=params)
+    if res.status_code == 200:
+        print("pushplus推送成功!")
+    else:
+        print("pushplus推送失败!")
+
+
 # endregion
 
 # 主操作
@@ -325,7 +384,8 @@ def main():
         print("未获取到环境变量'WSKEY'，执行中止")
         return
     headers["wskey"] = WSKEY
-    records_num = int(RECORDSNUM)
+    if RECORDSNUM.isdigit():
+        records_num = int(RECORDSNUM)
     resolveDeviceName(DEVICENAME)
     checkForUpdates()
     todayPointIncome()
