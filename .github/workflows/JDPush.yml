@@ -3,7 +3,7 @@ name: JDPush
 on:
   workflow_dispatch:
   schedule:
-    - cron: '20 0 * * *'
+    - cron: '30 22 * * *'
     # cron表达式，Actions时区是UTC时间，需要往前推8个小时  此时为6点30推送
 
 jobs:
@@ -31,5 +31,12 @@ jobs:
           TG_USER_ID: ${{ secrets.TG_USER_ID }}
           BARK: ${{ secrets.BARK }}
           PUSHPLUS: ${{ secrets.PUSHPLUS }}
+          ACCESSTOKEN: ${{ secrets.ACCESSTOKEN }}
+          CORPID: ${{ secrets.CORPID }}
+          CORPSECRET: ${{ secrets.CORPSECRET }}
+          TOUSER: ${{ secrets.TOUSER }}
+          AGENTID: ${{ secrets.AGENTID }}
+          THUMB_MEDIA_ID: ${{ secrets.THUMB_MEDIA_ID }}
+          AUTHOR: ${{ secrets.AUTHOR }}
       run: |
         python JDRouterPush.py
